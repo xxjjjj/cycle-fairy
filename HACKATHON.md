@@ -45,6 +45,14 @@ One-line pitch:
 
 > Cycle Fairy turns menstrual tracking from an ad-heavy app into a local-first resident agent skill: say one sentence, get reminders, body-literacy explanations, and doctor-ready summaries.
 
+Maker angle:
+
+> The maker is a returning hobbyist builder who wrote code briefly about 20 years ago and came back through AI agents. Cycle Fairy is shaped by lived cycle experience: missed records, awkward questions, calendar-tapping friction, app ads, and the small body-literacy gaps typical trackers often ignore.
+
+Sharper demo line:
+
+> The problem is not that people do not care about their cycle data. The problem is that the logging UX is hostile: open an app, tap a calendar, pick fields, dismiss ads, maybe log in again. Cycle Fairy replaces that with the most natural interface we have: just tell your resident agent.
+
 What the judges should remember:
 
 - It is not another period app.
@@ -59,7 +67,11 @@ What the judges should remember:
 
 Say:
 
-> Period apps ask people to open an app, log in, dodge ads, and fill forms. That is why records go missing. But a resident agent is already there. Cycle Fairy lets you just say the thing.
+> Period apps ask people to open an app, tap a calendar, pick fields, dodge ads, and sometimes log in again. That is why records go missing. But a resident agent is already there. Cycle Fairy lets you just say the thing.
+
+Optional personal framing:
+
+> I am a returning hobbyist builder. Modern agents brought me back to making software, and this project comes from lived product frustration: basic cycle logging should not feel like paperwork.
 
 Show:
 

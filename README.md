@@ -4,7 +4,11 @@ Cycle Fairy is a portable local menstrual-cycle skill and tool for agents. It re
 
 It is designed for local-first use: data is stored in SQLite, with no account, ads, or cloud dependency.
 
-Suggested repository name: `cycle-fairy`.
+## Motivation
+
+Period tracking should be lightweight. But many tools ask users to open an app, dodge ads, tap through calendars, and fill forms at exactly the moment they least want friction. Cycle Fairy turns that into a one-sentence agent interaction: say what happened, and the local skill records it.
+
+It is built by a returning hobbyist builder with lived experience of menstrual-tracking friction, and shaped as an agent-native skill rather than another screen to remember.
 
 ## Hackathon Pitch
 
