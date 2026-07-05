@@ -11,6 +11,12 @@ sys.path.insert(0, str(ROOT / "scripts"))
 import cycle  # noqa: E402
 
 
+USER_KEY_PROPERTY = {
+    "type": "string",
+    "description": "Opaque host user key. In multi-user runtimes, pass a stable per-user key such as tenant:user.",
+}
+LOCALE_PROPERTY = {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"}
+
 TOOLS = [
     {
         "name": "cycle_record",
@@ -20,7 +26,8 @@ TOOLS = [
             "properties": {
                 "text": {"type": "string"},
                 "date": {"type": "string", "description": "Optional YYYY-MM-DD local date"},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
             },
             "required": ["text"],
         },
@@ -32,7 +39,8 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "today": {"type": "string", "description": "Optional YYYY-MM-DD local date"},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
             },
         },
     },
@@ -43,7 +51,8 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "today": {"type": "string", "description": "Optional YYYY-MM-DD local date"},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
             },
         },
     },
@@ -54,7 +63,8 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "today": {"type": "string", "description": "Optional YYYY-MM-DD local date"},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
             },
         },
     },
@@ -65,7 +75,7 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "question": {"type": "string"},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
             },
             "required": ["question"],
         },
@@ -77,7 +87,19 @@ TOOLS = [
             "type": "object",
             "properties": {
                 "format": {"type": "string", "enum": ["json", "csv"]},
-                "locale": {"type": "string", "enum": ["auto", "zh", "en"], "description": "Response locale; defaults to auto"},
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
+            },
+        },
+    },
+    {
+        "name": "cycle_health",
+        "description": "Check the local Cycle Fairy store for the current user scope.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "locale": LOCALE_PROPERTY,
+                "user_key": USER_KEY_PROPERTY,
             },
         },
     },
@@ -85,7 +107,11 @@ TOOLS = [
 
 
 def call_tool(name: str, arguments: dict) -> dict:
-    with cycle.connect(cycle.DEFAULT_DB) as conn:
+    if name == "cycle_explain":
+        return cycle.explain(arguments["question"], arguments.get("locale", "auto"))
+
+    db_path = cycle.resolve_db_path(user_key=arguments.get("user_key"))
+    with cycle.connect(db_path) as conn:
         if name == "cycle_record":
             return cycle.handle_record(conn, arguments["text"], cycle.parse_day(arguments.get("date")), arguments.get("locale", "auto"))
         if name == "cycle_daily_check":
@@ -94,10 +120,10 @@ def call_tool(name: str, arguments: dict) -> dict:
             return cycle.with_locale(cycle.summarize(conn, cycle.parse_day(arguments.get("today"))), cycle.resolve_locale(arguments.get("locale", "auto")))
         if name == "cycle_doctor_summary":
             return cycle.doctor_summary(conn, cycle.parse_day(arguments.get("today")), arguments.get("locale", "auto"))
-        if name == "cycle_explain":
-            return cycle.explain(arguments["question"], arguments.get("locale", "auto"))
         if name == "cycle_export":
             return cycle.with_locale(cycle.export_records(conn, arguments.get("format", "json")), cycle.resolve_locale(arguments.get("locale", "auto")))
+        if name == "cycle_health":
+            return cycle.health_payload(conn, db_path, arguments.get("user_key"), arguments.get("locale", "auto"))
     raise ValueError(f"unknown tool: {name}")
 
 

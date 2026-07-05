@@ -58,6 +58,7 @@ What the judges should remember:
 - It is not another period app.
 - It is an agent capability that can be installed into Codex, Hermes, OpenClaw, or any MCP/OpenAPI-capable runtime.
 - The data stays local by default.
+- Shared agent runtimes can pass a stable `user_key`, so each user gets a separate local SQLite store instead of one mixed database.
 - It reduces friction at the exact moment people usually forget to record.
 - It treats menstrual health as body literacy, not shame, ads, or paywalls.
 
@@ -214,7 +215,7 @@ Answer:
 
 Answer:
 
-> The same core logic runs through CLI, HTTP/OpenAPI, and MCP. That makes it portable across agent frameworks instead of trapped in one app.
+> The same core logic runs through CLI, HTTP/OpenAPI, and MCP. Multi-user hosts can pass a stable user key that maps to a separate local SQLite store, so the skill is portable across agent frameworks instead of trapped in one app.
 
 **How does this scale beyond the first two languages?**
 
@@ -228,7 +229,7 @@ Priority fixes:
 
 1. Add pattern analysis for repeated PMS and heavy-flow notes.
 2. Add a one-screen terminal or web demo view for summaries.
-3. Add GitHub Actions to run tests.
+3. Add a short multi-user adapter demo with `user_key` isolation.
 4. Add a short demo video.
 5. Prepare a clean event branch and submission checklist for August 7.
 

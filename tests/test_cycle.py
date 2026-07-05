@@ -25,6 +25,21 @@ def run_cycle(tmp_path, *args):
     return json.loads(result.stdout)
 
 
+def run_cycle_with_home(tmp_path, *args):
+    env = os.environ.copy()
+    env.pop("CYCLE_FAIRY_DB", None)
+    env["CYCLE_FAIRY_HOME"] = str(tmp_path / "home")
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), *args],
+        cwd=ROOT,
+        env=env,
+        text=True,
+        capture_output=True,
+    )
+    assert result.returncode == 0, result.stderr
+    return json.loads(result.stdout)
+
+
 class CycleFairyTests(unittest.TestCase):
     def test_records_period_start_and_end_with_seven_day_duration(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -239,6 +254,85 @@ class CycleFairyTests(unittest.TestCase):
             chinese = run_cycle(tmp_path, "explain", "What is PMS?", "--locale", "zh")
             self.assertEqual(chinese["locale"], "zh")
             self.assertIn("身体后台", chinese["message"])
+
+    def test_user_key_keeps_records_in_separate_local_databases(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            run_cycle_with_home(
+                tmp_path,
+                "--user-key",
+                "feishu:tenant-a:user-a",
+                "record",
+                "今天来了",
+                "--date",
+                "2026-07-01",
+            )
+
+            user_b_summary = run_cycle_with_home(
+                tmp_path,
+                "--user-key",
+                "feishu:tenant-a:user-b",
+                "summary",
+                "--today",
+                "2026-07-02",
+            )
+            self.assertEqual(user_b_summary["cycles_count"], 0)
+
+            user_a_summary = run_cycle_with_home(
+                tmp_path,
+                "--user-key",
+                "feishu:tenant-a:user-a",
+                "summary",
+                "--today",
+                "2026-07-02",
+            )
+            self.assertEqual(user_a_summary["cycles_count"], 1)
+
+            health = run_cycle_with_home(tmp_path, "--user-key", "feishu:tenant-a:user-a", "health")
+            self.assertEqual(health["status"], "ok")
+            self.assertTrue(health["user_scoped"])
+            self.assertEqual(health["records_count"], 1)
+            self.assertEqual(health["last_record_date"], "2026-07-01")
+            self.assertNotIn("user-a", health["db_path"])
+
+    def test_explicit_db_path_overrides_user_key_storage(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            tmp_path = Path(tmp)
+            shared_db = tmp_path / "shared.sqlite"
+            run_cycle_with_home(
+                tmp_path,
+                "--db",
+                str(shared_db),
+                "--user-key",
+                "user-a",
+                "record",
+                "今天来了",
+                "--date",
+                "2026-07-01",
+            )
+
+            summary = run_cycle_with_home(
+                tmp_path,
+                "--db",
+                str(shared_db),
+                "--user-key",
+                "user-b",
+                "summary",
+                "--today",
+                "2026-07-02",
+            )
+            self.assertEqual(summary["cycles_count"], 1)
+
+            health = run_cycle_with_home(
+                tmp_path,
+                "--db",
+                str(shared_db),
+                "--user-key",
+                "user-b",
+                "health",
+            )
+            self.assertFalse(health["user_scoped"])
+            self.assertIsNone(health["user_scope"])
 
 
 if __name__ == "__main__":

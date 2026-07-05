@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import re
@@ -13,7 +14,8 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 
 
-DEFAULT_DB = Path(os.environ.get("CYCLE_FAIRY_DB", "~/.cycle-fairy/cycle.sqlite")).expanduser()
+DEFAULT_HOME = Path(os.environ.get("CYCLE_FAIRY_HOME", "~/.cycle-fairy")).expanduser()
+DEFAULT_DB = Path(os.environ.get("CYCLE_FAIRY_DB", str(DEFAULT_HOME / "cycle.sqlite"))).expanduser()
 SUPPORTED_LOCALES = {"auto", "zh", "en"}
 
 MOOD_KEYWORDS = {
@@ -400,6 +402,39 @@ def mood_phrase(mood: str | None, locale: str = "zh") -> str:
 def with_locale(payload: dict, locale: str) -> dict:
     payload["locale"] = locale
     return payload
+
+
+def user_scope_id(user_key: str) -> str:
+    cleaned = user_key.strip()
+    if not cleaned:
+        raise ValueError("user_key must not be empty")
+    return hashlib.sha256(cleaned.encode("utf-8")).hexdigest()[:16]
+
+
+def user_db_path(user_key: str, home: Path = DEFAULT_HOME) -> Path:
+    return home / "users" / user_scope_id(user_key) / "cycle.sqlite"
+
+
+def resolve_db_path(db_path: str | None = None, user_key: str | None = None) -> Path:
+    if db_path:
+        return Path(db_path).expanduser()
+    if user_key:
+        return user_db_path(user_key)
+    return DEFAULT_DB
+
+
+def health_payload(conn: sqlite3.Connection, db_path: Path, user_key: str | None = None, locale: str = "auto") -> dict:
+    latest = conn.execute("SELECT date, kind FROM records ORDER BY date DESC, id DESC LIMIT 1").fetchone()
+    payload = {
+        "status": "ok",
+        "db_path": str(db_path),
+        "records_count": conn.execute("SELECT COUNT(*) FROM records").fetchone()[0],
+        "last_record_date": latest["date"] if latest else None,
+        "last_record_kind": latest["kind"] if latest else None,
+        "user_scoped": bool(user_key),
+        "user_scope": user_scope_id(user_key) if user_key else None,
+    }
+    return with_locale(payload, resolve_locale(locale))
 
 
 def handle_record(conn: sqlite3.Connection, text: str, base_day: date, locale: str = "auto") -> dict:
@@ -845,7 +880,8 @@ def csv_escape(value) -> str:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description="Cycle Fairy local cycle tracker")
-    parser.add_argument("--db", default=str(DEFAULT_DB), help="SQLite database path")
+    parser.add_argument("--db", help="SQLite database path; overrides user-key storage")
+    parser.add_argument("--user-key", help="Opaque host-provided user key for multi-user local storage")
     sub = parser.add_subparsers(dest="command", required=True)
 
     record_parser = sub.add_parser("record")
@@ -873,8 +909,11 @@ def main(argv: list[str]) -> int:
     doctor_parser.add_argument("--today")
     doctor_parser.add_argument("--locale", choices=sorted(SUPPORTED_LOCALES), default="auto")
 
+    health_parser = sub.add_parser("health")
+    health_parser.add_argument("--locale", choices=sorted(SUPPORTED_LOCALES), default="auto")
+
     args = parser.parse_args(argv)
-    db_path = Path(args.db).expanduser()
+    db_path = resolve_db_path(args.db, args.user_key)
 
     with connect(db_path) as conn:
         if args.command == "record":
@@ -889,6 +928,8 @@ def main(argv: list[str]) -> int:
             payload = with_locale(export_records(conn, args.format), resolve_locale(args.locale))
         elif args.command == "doctor-summary":
             payload = doctor_summary(conn, parse_day(args.today), args.locale)
+        elif args.command == "health":
+            payload = health_payload(conn, db_path, args.user_key if not args.db else None, args.locale)
         else:
             raise AssertionError(f"unknown command: {args.command}")
 

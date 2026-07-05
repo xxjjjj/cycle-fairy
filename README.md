@@ -62,6 +62,13 @@ CYCLE_FAIRY_DB=/path/to/cycle.sqlite python3 scripts/cycle.py record "my period 
 python3 scripts/cycle.py --db /path/to/cycle.sqlite summary
 ```
 
+Multi-user agent runtimes should pass an opaque user key. Cycle Fairy hashes the key and stores each user in a separate local SQLite file under `~/.cycle-fairy/users/`.
+
+```bash
+python3 scripts/cycle.py --user-key "feishu:tenant:user-a" record "今天来了"
+python3 scripts/cycle.py --user-key "feishu:tenant:user-a" health
+```
+
 ## Internationalization
 
 Every command supports:
@@ -96,6 +103,8 @@ python3 adapters/mcp_server.py
 ```
 
 The same core SQLite-backed logic powers CLI, HTTP, and MCP.
+
+For Hermes, OpenClaw, Feishu, or any shared resident agent, pass `user_key` in HTTP/MCP tool arguments. Use a stable host identifier such as `tenant:open_id` or `runtime:user_id`; do not use the person's display name.
 
 ## 中文说明
 

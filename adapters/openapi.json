@@ -19,7 +19,8 @@
                 "properties": {
                   "text": { "type": "string" },
                   "date": { "type": "string", "format": "date" },
-                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
                 },
                 "required": ["text"]
               }
@@ -45,7 +46,8 @@
                 "type": "object",
                 "properties": {
                   "today": { "type": "string", "format": "date" },
-                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
                 }
               }
             }
@@ -70,7 +72,8 @@
                 "type": "object",
                 "properties": {
                   "today": { "type": "string", "format": "date" },
-                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
                 }
               }
             }
@@ -95,7 +98,8 @@
                 "type": "object",
                 "properties": {
                   "today": { "type": "string", "format": "date" },
-                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
                 }
               }
             }
@@ -149,7 +153,8 @@
                     "type": "string",
                     "enum": ["json", "csv"]
                   },
-                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
                 }
               }
             }
@@ -158,6 +163,31 @@
         "responses": {
           "200": {
             "description": "Exported local records"
+          }
+        }
+      }
+    },
+    "/health": {
+      "post": {
+        "operationId": "cycle_health",
+        "summary": "Check local storage health for the current user scope",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" },
+                  "user_key": { "type": "string", "description": "Opaque host user key for multi-user local storage" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Storage health summary"
           }
         }
       }

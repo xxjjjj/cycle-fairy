@@ -14,7 +14,7 @@ import cycle  # noqa: E402
 
 
 def dispatch(path: str, payload: dict, db_path: str | None = None) -> dict:
-    db = Path(db_path).expanduser() if db_path else cycle.DEFAULT_DB
+    db = cycle.resolve_db_path(db_path, payload.get("user_key"))
     with cycle.connect(db) as conn:
         if path == "/record":
             return cycle.handle_record(conn, payload["text"], cycle.parse_day(payload.get("date")), payload.get("locale", "auto"))
@@ -29,7 +29,7 @@ def dispatch(path: str, payload: dict, db_path: str | None = None) -> dict:
         if path == "/export":
             return cycle.with_locale(cycle.export_records(conn, payload.get("format", "json")), cycle.resolve_locale(payload.get("locale", "auto")))
         if path == "/health":
-            return {"ok": True, "name": "cycle-fairy"}
+            return cycle.health_payload(conn, db, payload.get("user_key") if not db_path else None, payload.get("locale", "auto"))
     raise ValueError(f"unknown endpoint: {path}")
 
 

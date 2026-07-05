@@ -29,6 +29,16 @@ python3 scripts/cycle.py export --format json
 
 Data defaults to `~/.cycle-fairy/cycle.sqlite`. Set `CYCLE_FAIRY_DB=/path/to/cycle.sqlite` or pass `--db /path/to/cycle.sqlite` for another location.
 
+For shared agent runtimes, pass an opaque `--user-key` from the host:
+
+```bash
+python3 scripts/cycle.py --user-key "hermes:user-id" record "今天来了"
+python3 scripts/cycle.py --user-key "feishu:tenant:open-id" daily-check
+python3 scripts/cycle.py --user-key "feishu:tenant:open-id" health
+```
+
+The raw key is hashed into `~/.cycle-fairy/users/<scope>/cycle.sqlite`, so different users do not share one cycle database.
+
 ## Internationalization
 
 The CLI, HTTP adapter, and MCP adapter support `locale=auto|zh|en`.
@@ -60,7 +70,9 @@ Use the simplest adapter your resident agent supports:
 
 The HTTP adapter exposes `POST /record`, `/daily-check`, `/summary`, `/doctor-summary`, `/explain`, and `/export`. Use `adapters/openapi.json` when a framework wants an OpenAPI schema. Pass `locale` in JSON payloads when needed.
 
-The MCP adapter exposes `cycle_record`, `cycle_daily_check`, `cycle_summary`, `cycle_doctor_summary`, `cycle_explain`, and `cycle_export`. It is intentionally thin: it calls the same local SQLite-backed core. Pass `locale` in tool arguments when needed.
+The MCP adapter exposes `cycle_record`, `cycle_daily_check`, `cycle_summary`, `cycle_doctor_summary`, `cycle_explain`, `cycle_export`, and `cycle_health`. It is intentionally thin: it calls the same local SQLite-backed core. Pass `locale` in tool arguments when needed.
+
+In any multi-user host, pass `user_key` in HTTP/MCP storage tools. Use a stable host identifier such as `tenant:open_id`, `tenant:union_id`, or `runtime:user_id`; do not use display names. In group chats, do not record cycle facts unless the host can identify the speaker and the product explicitly supports that context; a private DM is the safer default.
 
 ## When to Call the Tool
 
