@@ -1,0 +1,166 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Cycle Fairy",
+    "version": "0.1.0",
+    "description": "Portable period, PMS, mood, pain, heavy flow, discharge, irregularity, contraception, supplies, reminder, summary, and body-literacy support."
+  },
+  "paths": {
+    "/record": {
+      "post": {
+        "operationId": "cycle_record",
+        "summary": "Record a one-sentence cycle, PMS, mood, pain, flow, contraception, supply, or body-literacy note",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "date": { "type": "string", "format": "date" },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                },
+                "required": ["text"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded note"
+          }
+        }
+      }
+    },
+    "/daily-check": {
+      "post": {
+        "operationId": "cycle_daily_check",
+        "summary": "Run proactive cycle reminders",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "today": { "type": "string", "format": "date" },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reminder alerts"
+          }
+        }
+      }
+    },
+    "/summary": {
+      "post": {
+        "operationId": "cycle_summary",
+        "summary": "Summarize local cycle history",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "today": { "type": "string", "format": "date" },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Cycle summary"
+          }
+        }
+      }
+    },
+    "/doctor-summary": {
+      "post": {
+        "operationId": "cycle_doctor_summary",
+        "summary": "Create a doctor-ready cycle and symptom summary",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "today": { "type": "string", "format": "date" },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Doctor-ready summary"
+          }
+        }
+      }
+    },
+    "/explain": {
+      "post": {
+        "operationId": "cycle_explain",
+        "summary": "Explain menstrual and body-literacy questions",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "question": { "type": "string" },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                },
+                "required": ["question"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Plain-language explanation"
+          }
+        }
+      }
+    },
+    "/export": {
+      "post": {
+        "operationId": "cycle_export",
+        "summary": "Export local records",
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "format": {
+                    "type": "string",
+                    "enum": ["json", "csv"]
+                  },
+                  "locale": { "type": "string", "enum": ["auto", "zh", "en"], "default": "auto" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Exported local records"
+          }
+        }
+      }
+    }
+  }
+}

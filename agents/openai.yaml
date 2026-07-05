@@ -1,0 +1,7 @@
+interface:
+  display_name: "Cycle Fairy"
+  short_description: "Record cycle notes, PMS, pain, flow, discharge, and reminders in a cute multilingual voice"
+  default_prompt: "Use $cycle-fairy to record my period started today with mild cramps."
+
+policy:
+  allow_implicit_invocation: true
